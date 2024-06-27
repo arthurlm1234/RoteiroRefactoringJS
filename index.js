@@ -7,11 +7,11 @@ function gerarFaturaStr (fatura, pecas) {
     const formato = new Intl.NumberFormat("pt-BR",
                           { style: "currency", currency: "BRL",
                             minimumFractionDigits: 2 }).format;
-  
-    for (let apre of fatura.apresentacoes) {
-      const peca = pecas[apre.id];
+
+
+    // função extraída
+    function calcularTotalApresentacao(apre, peca) {
       let total = 0;
-  
       switch (peca.tipo) {
       case "tragedia":
         total = 40000;
@@ -22,13 +22,20 @@ function gerarFaturaStr (fatura, pecas) {
       case "comedia":
         total = 30000;
         if (apre.audiencia > 20) {
-           total += 10000 + 500 * (apre.audiencia - 20);
+          total += 10000 + 500 * (apre.audiencia - 20);
         }
         total += 300 * apre.audiencia;
         break;
       default:
           throw new Error(`Peça desconhecia: ${peca.tipo}`);
       }
+      return total;
+    }
+  
+    for (let apre of fatura.apresentacoes) {
+      const peca = pecas[apre.id];
+      
+      let total = calcularTotalApresentacao(apre, peca);
   
       // créditos para próximas contratações
       creditos += Math.max(apre.audiencia - 30, 0);
