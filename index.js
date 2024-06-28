@@ -1,4 +1,4 @@
-const { readFileSync } = require('fs');
+const { readFileSync} = require('fs');
 const { get } = require('http');
 
 function formatarMoeda(valor) {
@@ -68,9 +68,34 @@ function gerarFaturaStr (fatura, pecas) {
     faturaStr += `Valor total: ${formatarMoeda(calcularTotalFatura(pecas, fatura.apresentacoes))}\n`;
     faturaStr += `Créditos acumulados: ${calcularTotalCreditos(pecas, fatura.apresentacoes)} \n`;
     return faturaStr;
-  }
+}
+
+function gerarFaturaHTML(fatura, pecas) {
+  let pecasHTML = fatura.apresentacoes.map(apre => {
+    let peca = getPeca(pecas, apre);
+    let totalApresentacao = calcularTotalApresentacao(pecas, apre);
+    return `<li>${peca.nome}: ${formatarMoeda(totalApresentacao)} (${apre.audiencia} assentos)</li>`;
+  }).join('');
+
+  let valorTotal = calcularTotalFatura(pecas, fatura.apresentacoes);
+  let creditos = calcularTotalCreditos(pecas, fatura.apresentacoes);
+
+  let htmlString = `
+    <p>Fatura ${fatura.cliente}</p>
+    <ul>
+        ${pecasHTML}
+    </ul>
+    <p>Valor total: ${formatarMoeda(valorTotal)}</p>
+    <p>Créditos acumulados: ${creditos}</p>
+    </html>
+  `;
+
+  return htmlString;
+}
 
 const faturas = JSON.parse(readFileSync('./faturas.json'));
 const pecas = JSON.parse(readFileSync('./pecas.json'));
 const faturaStr = gerarFaturaStr(faturas, pecas);
+const faturaHtml = gerarFaturaHTML(faturas, pecas);
 console.log(faturaStr);
+console.log(faturaHtml);
